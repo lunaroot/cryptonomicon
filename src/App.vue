@@ -153,7 +153,7 @@ export default {
         const data = await f.json()
 
         // currentTicker.price = data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(2)
-        this.tickers.find(t => t.name === currentTicker.name).price =
+        this.tickers.find(t => t._id === currentTicker._id).price =
           data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(2)
 
         if (this.selectedTicker === currentTicker._id) {
