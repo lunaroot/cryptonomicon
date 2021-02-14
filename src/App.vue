@@ -127,28 +127,44 @@
 </template>
 
 <script>
-// https://min-api.cryptocompare.com/data/pricemulti?fsyms=ETH,DASH&tsyms=BTC,USD,EUR&api_key=INSERT-YOUR-API-KEY-HERE
-
 export default {
   data () {
     return {
       ticker: null,
       selectedTicker: null,
-      tickers: []
+      tickers: [],
+      graph: []
     }
   },
 
   methods: {
     addTicker () {
-      this.tickers.push({
+      const currentTicker = {
         _id: this.ticker,
-        price: null
-      })
+        price: '---'
+      }
+      this.tickers.push(currentTicker)
       this.ticker = null
+
+      setInterval(async () => {
+        const f = await fetch(
+          `https://min-api.cryptocompare.com/data/price?fsym=${currentTicker._id}&tsyms=USD&api_key=${process.env.VUE_APP_API_KEY}`
+        )
+        const data = await f.json()
+
+        // currentTicker.price = data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(2)
+        this.tickers.find(t => t.name === currentTicker.name).price =
+          data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(2)
+
+        if (this.selectedTicker === currentTicker._id) {
+          this.graph.push(data.USD)
+        }
+      }, 5000)
     },
 
     chooseTicker (tid) {
       this.selectedTicker = tid
+      this.graph = []
     },
 
     removeTicker (tid) {
@@ -157,6 +173,12 @@ export default {
       if (tid === this.selectedTicker) {
         this.selectedTicker = null
       }
+    },
+
+    normalizeGraph () {
+      const maxValue = Math.max(...this.graph)
+      const minValue = Math.min(...this.graph)
+      return this.graph.map((price) => 5 + ((price - minValue) * 95) / (maxValue - minValue))
     }
   }
 }
