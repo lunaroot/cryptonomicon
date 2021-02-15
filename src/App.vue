@@ -89,10 +89,12 @@
           {{ selectedTicker }} - USD
         </h3>
         <div class="flex items-end border-gray-600 border-b border-l h-64">
-          <div class="bg-purple-800 border w-10 h-24"></div>
-          <div class="bg-purple-800 border w-10 h-32"></div>
-          <div class="bg-purple-800 border w-10 h-48"></div>
-          <div class="bg-purple-800 border w-10 h-16"></div>
+          <div
+            v-for="(bar, idx) in normalizeGraph()"
+            :key="idx"
+            :style="{ height: `${bar}%` }"
+            class="bg-purple-800 border w-10"
+          ></div>
         </div>
         <button
           @click="removeTicker(selectedTicker)"
@@ -172,6 +174,7 @@ export default {
 
       if (tid === this.selectedTicker) {
         this.selectedTicker = null
+        this.graph = []
       }
     },
 
