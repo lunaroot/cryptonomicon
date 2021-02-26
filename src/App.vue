@@ -179,7 +179,7 @@ export default {
 
     loadData () {
       const tickers = JSON.parse(window.localStorage.getItem('cryptonomicon-tickers') || '[]')
-      this.maxpage = Math.floor(tickers.length / PAGINATION_STEP)
+      this.maxpage = Math.ceil(tickers.length / PAGINATION_STEP)
       return tickers
     },
 
