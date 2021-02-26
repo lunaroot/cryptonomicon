@@ -1,8 +1,6 @@
 <template>
   <div class="container mx-auto flex flex-col items-center bg-gray-100 p-4">
     <div class="container">
-      <div class="w-full my-4"></div>
-
       <section>
         <div class="flex">
           <div class="max-w-xs">
@@ -41,6 +39,22 @@
           Добавить
         </button>
       </section>
+
+      <template v-if="tickers.length">
+        <hr class="w-full border-t border-gray-600 my-4" />
+        <p>Page: {{ page }} / {{ maxpage }}</p>
+        <button
+          @click="changePageCount(-1)"
+          type="button"
+          class="my-4 mx-4 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+        >-</button>
+        <button
+          @click="changePageCount(1)"
+          type="button"
+          class="my-4 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+        >+</button>
+        <hr class="w-full border-t border-gray-600 my-4" />
+      </template>
 
       <template v-if="tickers.length">
         <hr class="w-full border-t border-gray-600 my-4" />
@@ -129,23 +143,68 @@
 </template>
 
 <script>
+const PAGINATION_STEP = 2
+
 export default {
   data () {
     return {
       ticker: null,
       selectedTicker: null,
       tickers: [],
-      graph: []
+      graph: [],
+      page: 1,
+      maxpage: 1
+    }
+  },
+
+  created () {
+    const tickers = this.loadData()
+    this.applyPagination(tickers)
+  },
+
+  watch: {
+    page () {
+      const tickers = this.loadData()
+      this.applyPagination(tickers)
     }
   },
 
   methods: {
+    applyPagination (tickers) {
+      const page = this.page
+      const indexStart = PAGINATION_STEP * (page - 1)
+      const indexEnd = PAGINATION_STEP * page - 1
+      this.tickers = tickers.slice(indexStart, indexEnd + 1)
+    },
+
+    loadData () {
+      const tickers = JSON.parse(window.localStorage.getItem('cryptonomicon-tickers') || '[]')
+      this.maxpage = Math.floor(tickers.length / PAGINATION_STEP)
+      return tickers
+    },
+
+    saveData () {
+      window.localStorage.setItem('cryptonomicon-tickers', JSON.stringify(this.tickers))
+    },
+
+    changePageCount (counter) {
+      let page = this.page
+      page += counter
+
+      if (page >= 1 && page <= this.maxpage) {
+        this.page = page
+      }
+    },
+
     addTicker () {
+      const tickerID = this.ticker.toUpperCase()
       const currentTicker = {
-        _id: this.ticker,
+        _id: tickerID,
         price: '---'
       }
       this.tickers.push(currentTicker)
+      this.saveData()
+
       this.ticker = null
 
       setInterval(async () => {
@@ -176,6 +235,8 @@ export default {
         this.selectedTicker = null
         this.graph = []
       }
+
+      this.saveData()
     },
 
     normalizeGraph () {
